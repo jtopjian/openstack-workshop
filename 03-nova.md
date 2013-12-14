@@ -71,6 +71,13 @@ To configure Nova to use RabbitMQ for the messaging/queuing service, add the fol
     rabbit_host = localhost
     rabbit_password = guest
 
+#### Glance
+
+To configure Nova to use Glance for the image service, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
+
+    image_service=nova.image.glance.GlanceImageService
+    glance_api_servers=localhost:9292
+
 ### Verifying
 
 Once all of the above has been entered in to `nova.conf`, restart all Nova services:
@@ -88,9 +95,17 @@ This variation displays the same information, but uses the `nova` command:
 
     $ nova service-list
 
+To confirm that Nova can talk to Glance, run the following:
+
+    $ nova image-list
+
+You should see your CirrOS image.
+
 ## Nova Networking
 
 Neutron is the new networking component for OpenStack. Originally, the networking component was handled by `nova-network`. We will get into Neutron later. For now, we'll create a simple network with `nova-network`.
+
+### Server Configuration
 
 To begin, you will need to create a bridge interface. Copy the following into a file called `bridge.sh`:
 
@@ -120,3 +135,33 @@ Once complete, restart networking:
 If everything completed successfully, you will still have connectivity to your server and you will have a new interface called `br0`:
 
     $ ip a | grep br0
+
+Additionally, you will have a bridge named `br0`:
+
+    $ brctl show
+
+### Nova Configuration
+
+Add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
+
+    network_manager=nova.network.manager.FlatDHCPManager
+    firewall_driver=nova.virt.libvirt.firewall.IptablesFirewallDriver
+    network_size=254
+    force_dhcp_release=True
+    flat_network_bridge=br0
+    flat_interface=eth0
+    public_interface=eth0
+
+### Network Creation
+
+The final step is to create a virtual network that your virtual machines will communicate on:
+
+    $ source openrc
+    $ nova network-create nova --fixed-range-v4=192.168.1.0/24 --bridge-interface=br0
+
+## Launching an Instance
+
+At this point, we have Keystone providing authentication, Glance providing images, and Nova providing virtual machine orchestration. This is the minimum needed to start launching virtual machines in an IaaS environment. Let's try!
+
+    $ nova image-list
+    $ nova boot --image <uuid> --flavor 1 my_vm
