@@ -58,7 +58,7 @@ Once `cinder.conf` has been modified, run the `cinder-manage` command to create 
 
 ## Volume Configuration
 
-The most basic type of volume configuration is to use a combination of [Linux LVM](http://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)) and iSCSI.
+The most basic type of volume configuration is to use a combination of <a href="http://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">Linux LVM</a> and iSCSI.
 
 ### Server
 
