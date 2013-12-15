@@ -17,11 +17,9 @@ It's common to run all but the last daemon on a single server known as the Cloud
 
 For this exercise, all daemons will be run on a single server. This is known as an all-in-one configuration.
 
-__note__: the `nova-conductor` daemon will not be installed since only one server is being used.
-
 ## Installation
 
-    $ sudo apt-get install nova-novncproxy novnc nova-api nova-ajax-console-proxy nova-cert nova-consoleauth nova-doc nova-scheduler nova-network nova-compute-qemu python-novaclient
+    $ sudo apt-get install nova-novncproxy novnc nova-api nova-ajax-console-proxy nova-cert nova-conductor nova-consoleauth nova-doc nova-scheduler nova-network nova-compute-qemu python-novaclient
 
 ## Configuration
 
@@ -58,10 +56,9 @@ Finally, open `/etc/nova/api-paste.ini` and go down to the bottom. Modify the Ke
 
 #### Database
 
-To configure Nova to use MySQL for the database, add the following to the bottom of `/etc/nova/nova.conf`:
+To configure Nova to use MySQL for the database, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
 
-    [database]
-    connection = mysql://nova:password@localhost/nova
+    sql_connection = mysql://nova:password@localhost/nova
 
 #### RabbitMQ
 
@@ -157,7 +154,7 @@ Add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
 The final step is to create a virtual network that your virtual machines will communicate on:
 
     $ source openrc
-    $ nova network-create nova --fixed-range-v4=192.168.1.0/24 --bridge-interface=br0
+    $ nova network-create nova --fixed-range-v4=192.168.1.0/24 --bridge-interface=eth0 --bridge=br0
 
 ## Launching an Instance
 
