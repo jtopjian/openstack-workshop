@@ -74,7 +74,7 @@ Next, a Volume Group will need created. The default VG name that Cinder expects 
 
 Once the server is set up, just restart the Cinder services. Since LVM/iSCSI is the default storage backend, no modifications to Cinder are required:
 
-    $ for i in `ls /etc/init.d/cinder-*`
+    $ for i in /etc/init.d/cinder-*
     > do
     > $i restart
     > done

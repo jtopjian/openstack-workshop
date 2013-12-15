@@ -87,7 +87,7 @@ Once `nova.conf` has been modified, run
 
 Once all of the above has been entered in to `nova.conf`, restart all Nova services:
 
-    $ for i in `ls /etc/init.d/nova-*`
+    $ for i in /etc/init.d/nova-*
     > do
     > sudo /etc/init.d/$i restart
     > done
