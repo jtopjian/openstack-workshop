@@ -28,13 +28,36 @@ For this exercise, all daemons will be run on a single server. This is known as 
 Just like with Glance, create a Keystone user for Nova:
 
     $ keystone user-create --name nova --tenant services --pass password --email root@localhost
-    $ keystone user-role-add --user glance --tenant services --role admin
+    $ keystone user-role-add --user nova --tenant services --role admin
 
 ### Nova
 
-Nova is configured using a single, monolithic configuration file called `/etc/nova/nova.conf`.
+Nova is configured using a single monolithic configuration file called `/etc/nova/nova.conf`.
 
 _note_: The exception to this is with the Ubuntu packages which install a secondary file for `nova-compute` at `/etc/nova/nova-compute.conf`. When the `nova-compute` daemon starts, both files are read.
+
+#### Database
+
+To configure Nova to use MySQL for the database, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
+
+    sql_connection = mysql://nova:password@localhost/nova
+
+#### RabbitMQ
+
+To configure Nova to use RabbitMQ for the messaging/queuing service, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
+
+    rpc_backend = nova.rpc.impl_kombu
+    rabbit_host = localhost
+    rabbit_port = 5672
+    rabbit_user = guest
+    rabbit_password = guest
+
+#### Glance
+
+To configure Nova to use Glance for the image service, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
+
+    image_service=nova.image.glance.GlanceImageService
+    glance_api_servers=localhost:9292
 
 #### Keystone
 
@@ -54,26 +77,11 @@ And add the following to the bottom of `/etc/nova/nova.conf`:
 
 Finally, open `/etc/nova/api-paste.ini` and go down to the bottom. Modify the Keystone authentication information as needed.
 
-#### Database
+### Database Schema
 
-To configure Nova to use MySQL for the database, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
+Once `nova.conf` has been modified, run
 
-    sql_connection = mysql://nova:password@localhost/nova
-
-#### RabbitMQ
-
-To configure Nova to use RabbitMQ for the messaging/queuing service, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
-
-    rpc_backend = nova.rpc.impl_kombu
-    rabbit_host = localhost
-    rabbit_password = guest
-
-#### Glance
-
-To configure Nova to use Glance for the image service, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
-
-    image_service=nova.image.glance.GlanceImageService
-    glance_api_servers=localhost:9292
+    $ sudo nova-manage db sync
 
 ### Verifying
 
@@ -85,10 +93,6 @@ Once all of the above has been entered in to `nova.conf`, restart all Nova servi
     > done
 
 The following command will display the status of the Nova services:
-
-    $ sudo nova-manage service list
-
-This variation displays the same information, but uses the `nova` command:
 
     $ nova service-list
 
@@ -154,7 +158,11 @@ Add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
 The final step is to create a virtual network that your virtual machines will communicate on:
 
     $ source openrc
-    $ nova network-create nova --fixed-range-v4=192.168.1.0/24 --bridge-interface=eth0 --bridge=br0
+    $ sudo nova-manage network create nova --fixed_range_v4=192.168.1.0/24 --bridge_interface=eth0 --bridge=br0
+
+Then restart `nova-network`:
+
+    $ sudo restart nova-network
 
 ## Launching an Instance
 
@@ -162,3 +170,34 @@ At this point, we have Keystone providing authentication, Glance providing image
 
     $ nova image-list
     $ nova boot --image <uuid> --flavor 1 my_vm
+
+You can check the status of your vm a few different ways:
+
+    $ nova show my_vm
+    $ sudo tail -f /var/log/nova/nova-compute.log
+
+If your instance fails to launch, the latter command will give you more insight as to why.
+
+Once your instance shows a status of `ACTIVE`, you can see the console output by doing:
+
+    $ nova console-log my_vm
+
+If all is successful, you can ping and SSH to your instance:
+
+    $ ping -c 1 192.168.1.13
+    $ ssh cirros@192.168.1.3
+
+## Security Groups
+
+Note that you were able to ping and SSH to your instance even though you did not set up a security group. The CirrOS image bypasses security groups. Besides the CirrOS image having a standard default password, the lack of security group feature is another reason why it should not be used in production.
+
+### Exercises
+
+To create add rules to your default security group on the command line, do the following:
+
+    $ nova help | grep secgroup
+    $ nova help secgroup-list
+    $ nova help secgroup-list-rules
+    $ nova help secgroup-add-rule
+
+## Questions?

@@ -20,12 +20,30 @@ and confirming that the version is `2013.2`.
 
 ## Configuration
 
+The following changes will be done in `/etc/keystone/keystone.conf`. Use your choice of a text editor to edit the file.
+
+### Admin Token
+
+They Keystone Admin Token is similar to the root password on a Linux server. To set it, do the following:
+
+  * Edit `/etc/keystone/keystone.conf`.
+  * Search for `admin_token` (third line).
+  * Uncomment it.
+  * Set the value to a password of your choice:
+    * `admin_token = password`
+
+### Token Format
+
+Keystone supports two types of tokens: UUID and PKI. UUID-based tokens are simple, short token strings. PKI tokens are full SSL-compatible tokens. While the PKI-based tokens give you the ability to tie into an existing PKI infrastructure, the UUID tokens are more simple and appropriate for basic environments.
+
+  * In `/etc/keystone/keystone.conf`, search for `token_format`.
+  * Change the value to `UUID`.
+
 ### Database
 
 By default, Keystone uses a SQLite database located at `/var/lib/keystone/keystone.db`. In order to configure it to use MySQL, do the following:
 
-  * Edit `/etc/keystone/keystone.conf`.
-  * Search for `sql`.
+  * In `/etc/keystone/keystone.conf`, search for `sql`.
   * Change the value of `connection` to `mysql://keystone:password@localhost/keystone`.
   * Save and exit the file.
 
@@ -38,17 +56,8 @@ You can verify that the schema was created by doing the following:
     $ mysql -u root -p keystone
     mysql> show tables;
 
-### Admin Token
 
-They Keystone Admin Token is similar to the root password on a Linux server. To set it, do the following:
-
-  * Edit `/etc/keystone/keystone.conf`.
-  * Search for `admin_token` (third line).
-  * Uncomment it.
-  * Set the value to a password of your choice:
-    * `admin_token = password`
-
-With the database and Admin Token configured, restart Keystone:
+With the database and admin token, and token format configured, restart Keystone:
 
     $ sudo restart keystone
 
@@ -89,7 +98,7 @@ You should now see two results when running:
 
 #### Default Users
 
-Now create the `admin` user and users for each OpenStack component:
+Now create the `admin` user:
 
     $ keystone user-create --name admin --tenant admin --pass password --email root@localhost
 
@@ -113,6 +122,26 @@ You can see that a `_member_` role already exists:
 Finally, grant the `admin` user the `admin` role in the `admin` tenant:
 
     $ keystone user-role-add --user admin --tenant admin --role admin
+
+## The Keystone Service Catalog
+
+Keystone stores a catalog of services as well as a user database. This allows users to query Keystone for what cloud services are available and where to find them.
+
+The catalog can either be stored in the MySQL database or in a text file. While most documentation will show how to store the catalog in MySQL, storing the catalog as a text file is actually much easier and a lot less resource intensive.
+
+To create the text-based catalog file:
+
+  * Open `/etc/keystone/keystone.conf`.
+  * Search for `catalog`.
+  * Comment out the first `driver` entry.
+  * Uncomment the second `driver` entry a few lines below the first.
+  * Save and exit the file.
+
+You'll notice that `/etc/keystone/default_catalog.templates` already exists and includes the basic OpenStack services.
+
+Restart Keystone and verify the catalog works by doing:
+
+    $ keystone catalog
 
 ## Create an openrc File
 
@@ -142,26 +171,6 @@ and finally, source the `openrc` file:
 Verify it works by doing:
 
     $ keystone user-list
-
-## The Keystone Service Catalog
-
-Keystone stores a catalog of services as well as a user database. This allows users to query Keystone for what cloud services are available and where to find them.
-
-The catalog can either be stored in the MySQL database or in a text file. While most documentation will show how to store the catalog in MySQL, storing the catalog as a text file is actually much easier and a lot less resource intensive.
-
-To create the text-based catalog file:
-
-  * Open `/etc/keystone/keystone.conf`.
-  * Search for `catalog`.
-  * Comment out the first `driver` entry.
-  * Uncomment the second `driver` entry a few lines below the first.
-  * Save and exit the file.
-
-You'll notice that `/etc/keystone/default_catalog.templates` already exists and includes the basic OpenStack services.
-
-Restart Keystone and verify the catalog works by doing:
-
-    $ keystone catalog
 
 ## Exercises
 
