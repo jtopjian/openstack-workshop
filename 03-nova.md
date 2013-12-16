@@ -75,7 +75,16 @@ And add the following to the bottom of `/etc/nova/nova.conf`:
     admin_user = nova
     admin_password = password
 
-Finally, open `/etc/nova/api-paste.ini` and go down to the bottom. Modify the Keystone authentication information as needed.
+Finally, open `/etc/nova/api-paste.ini` and go down to the bottom. Modify the Keystone authentication information as needed:
+
+    [filter:authtoken]
+    paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory
+    auth_host = 127.0.0.1
+    auth_port = 35357
+    auth_protocol = http
+    admin_tenant_name = services
+    admin_user = nova
+    admin_password = password
 
 ### Database Schema
 
@@ -89,7 +98,7 @@ Once all of the above has been entered in to `nova.conf`, restart all Nova servi
 
     $ for i in /etc/init.d/nova-*
     > do
-    > sudo /etc/init.d/$i restart
+    > sudo $i restart
     > done
 
 The following command will display the status of the Nova services:
