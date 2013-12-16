@@ -56,7 +56,6 @@ You can verify that the schema was created by doing the following:
     $ mysql -u root -p keystone
     mysql> show tables;
 
-
 With the database and admin token, and token format configured, restart Keystone:
 
     $ sudo restart keystone
@@ -123,26 +122,6 @@ Finally, grant the `admin` user the `admin` role in the `admin` tenant:
 
     $ keystone user-role-add --user admin --tenant admin --role admin
 
-## The Keystone Service Catalog
-
-Keystone stores a catalog of services as well as a user database. This allows users to query Keystone for what cloud services are available and where to find them.
-
-The catalog can either be stored in the MySQL database or in a text file. While most documentation will show how to store the catalog in MySQL, storing the catalog as a text file is actually much easier and a lot less resource intensive.
-
-To create the text-based catalog file:
-
-  * Open `/etc/keystone/keystone.conf`.
-  * Search for `catalog`.
-  * Comment out the first `driver` entry.
-  * Uncomment the second `driver` entry a few lines below the first.
-  * Save and exit the file.
-
-You'll notice that `/etc/keystone/default_catalog.templates` already exists and includes the basic OpenStack services.
-
-Restart Keystone and verify the catalog works by doing:
-
-    $ keystone catalog
-
 ## Create an openrc File
 
 The `openrc` file is the standard authentication file for OpenStack. While it's optional, it's very useful as it allows you to:
@@ -171,6 +150,27 @@ and finally, source the `openrc` file:
 Verify it works by doing:
 
     $ keystone user-list
+
+## The Keystone Service Catalog
+
+Keystone stores a catalog of services as well as a user database. This allows users to query Keystone for what cloud services are available and where to find them.
+
+The catalog can either be stored in the MySQL database or in a text file. While most documentation will show how to store the catalog in MySQL, storing the catalog as a text file is actually much easier and a lot less resource intensive.
+
+To create the text-based catalog file:
+
+  * Open `/etc/keystone/keystone.conf`.
+  * Search for `catalog`.
+  * Comment out the first `driver` entry.
+  * Uncomment the second `driver` entry a few lines below the first (it says TemplatedCatalog)
+  * Save and exit the file.
+
+You'll notice that `/etc/keystone/default_catalog.templates` already exists and includes the basic OpenStack services.
+
+Restart Keystone and verify the catalog works by doing:
+
+    $ sudo restart keystone
+    $ keystone catalog
 
 ## Exercises
 
