@@ -117,9 +117,9 @@ Neutron is the new networking component for OpenStack. Originally, the networkin
 
 ### Server Configuration
 
-To begin, you will need to create a bridge interface. Copy the following into a file called `bridge.sh`:
+To begin, you will need to create a bridge interface. We can do this directly by using `tee`:
 
-    cat <<EOF >/etc/network/interfaces
+    cat <<EOF | sudo tee /etc/network/interfaces
     auto lo
     iface lo inet loopback
 
@@ -133,10 +133,6 @@ To begin, you will need to create a bridge interface. Copy the following into a 
         bridge_fd 0
         bridge_maxwait 0
     EOF
-
-Then run the command:
-
-    $ sudo bash bridge.sh
 
 Once complete, restart networking:
 
