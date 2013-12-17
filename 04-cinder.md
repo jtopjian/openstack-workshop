@@ -14,7 +14,7 @@ Cinder contains the following components:
 
 It's common to run all of these services on a single server, especially if you only have one central storage device. If you choose to utilize the free storage space on each compute node, you will need to run a `cinder-volume` service on each compute node.
 
-For this exercise, all daemons will be run on the single server. We will use `/dev/vdc` as the storage device.
+For this exercise, all daemons will be run on the single server. We will use `/dev/vdb` as the storage device.
 
 ## Installation
 
@@ -70,11 +70,11 @@ The most basic type of volume configuration is to use a combination of <a href="
 
 Create a Physical Volume by doing:
 
-    $ sudo pvcreate /dev/vdc
+    $ sudo pvcreate /dev/vdb
 
 Next, a Volume Group will need created. The default VG name that Cinder expects is `cinder-volumes`:
 
-    $ sudo vgcreate cinder-volumes /dev/vdc
+    $ sudo vgcreate cinder-volumes /dev/vdb
 
 ### Cinder
 
@@ -121,7 +121,7 @@ To attach a volume to your running CirrOS server, do:
 
     $ nova volume-attach my_vm <vol uuid> auto
 
-Note that Nova reported it will attach as `/dev/vdc`.
+Note that Nova reported it will attach as `/dev/vdb`.
 
 Now log in to your CirrOS image and do:
 
