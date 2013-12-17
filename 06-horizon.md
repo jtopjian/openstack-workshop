@@ -23,4 +23,14 @@ To enable VNC console access from Horizon, add the following in the `[DEFAULT]` 
     vnc_enabled=true
     novncproxy_base_url=http://your-floating-ip:6080/vnc_auto.html
 
+    $ for i in /etc/init.d/nova-*
+    > do
+    > sudo $i restart
+    > done
+
+### Test
+
+In your browser go to [http://your-floating-ip/horizon](http://your-floating-ip/horizon) and login using `admin` and `password`.
+
+
 ## Questions?
