@@ -162,12 +162,19 @@ Add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
 
 The final step is to create a virtual network that your virtual machines will communicate on:
 
-    $ source openrc
+    $ source ~/openrc
     $ sudo nova-manage network create nova --fixed_range_v4=192.168.1.0/24 --bridge_interface=eth0 --bridge=br0
 
 Then restart `nova-network`:
 
     $ sudo restart nova-network
+
+
+    $ for i in /etc/init.d/nova-*
+    > do
+    > sudo $i restart
+    > done
+
 
 ## Launching an Instance
 
