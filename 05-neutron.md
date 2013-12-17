@@ -86,9 +86,17 @@ Then delete the `nova-network` network that was created:
     $ sudo nova-manage network modify --disassociate-project 192.168.1.0/24
     $ sudo nova-manage network delete 192.168.1.0/24
 
-Finally, remove `nova-network`
+Remove `nova-network`:
 
     $ sudo apt-get remove --purge nova-network
+
+Remove the 192 IP address from `br0`:
+
+    $ sudo ip addr del 192.168.1.1/24 dev br0
+
+Finally, make sure `dnsmasq` is not running:
+
+    $ sudo killall -9 dnsmasq
 
 #### nova.conf
 
