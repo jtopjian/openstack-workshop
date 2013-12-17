@@ -75,6 +75,7 @@ Now that Glance is running, add an image to it. For this workshop, an image know
 
 To add it to Glance, first download it:
 
+    $ cd
     $ wget http://cdn.download.cirros-cloud.net/0.3.1/cirros-0.3.1-x86_64-disk.img
 
 Next, note the _file type_ of the image:

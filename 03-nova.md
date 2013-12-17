@@ -75,7 +75,16 @@ And add the following to the bottom of `/etc/nova/nova.conf`:
     admin_user = nova
     admin_password = password
 
-Finally, open `/etc/nova/api-paste.ini` and go down to the bottom. Modify the Keystone authentication information as needed.
+Finally, open `/etc/nova/api-paste.ini` and go down to the bottom. Modify the Keystone authentication information as needed:
+
+    [filter:authtoken]
+    paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory
+    auth_host = 127.0.0.1
+    auth_port = 35357
+    auth_protocol = http
+    admin_tenant_name = services
+    admin_user = nova
+    admin_password = password
 
 ### Database Schema
 
@@ -89,7 +98,7 @@ Once all of the above has been entered in to `nova.conf`, restart all Nova servi
 
     $ for i in /etc/init.d/nova-*
     > do
-    > sudo /etc/init.d/$i restart
+    > sudo $i restart
     > done
 
 The following command will display the status of the Nova services:
@@ -108,9 +117,9 @@ Neutron is the new networking component for OpenStack. Originally, the networkin
 
 ### Server Configuration
 
-To begin, you will need to create a bridge interface. Copy the following into a file called `bridge.sh`:
+To begin, you will need to create a bridge interface. We can do this directly by using `tee`:
 
-    cat <<EOF >/etc/network/interfaces
+    cat <<EOF | sudo tee /etc/network/interfaces
     auto lo
     iface lo inet loopback
 
@@ -124,10 +133,6 @@ To begin, you will need to create a bridge interface. Copy the following into a 
         bridge_fd 0
         bridge_maxwait 0
     EOF
-
-Then run the command:
-
-    $ sudo bash bridge.sh
 
 Once complete, restart networking:
 
@@ -157,12 +162,19 @@ Add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
 
 The final step is to create a virtual network that your virtual machines will communicate on:
 
-    $ source openrc
+    $ source ~/openrc
     $ sudo nova-manage network create nova --fixed_range_v4=192.168.1.0/24 --bridge_interface=eth0 --bridge=br0
 
 Then restart `nova-network`:
 
     $ sudo restart nova-network
+
+
+    $ for i in /etc/init.d/nova-*
+    > do
+    > sudo $i restart
+    > done
+
 
 ## Launching an Instance
 
