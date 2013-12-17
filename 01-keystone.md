@@ -147,10 +147,6 @@ and finally, source the `openrc` file:
 
     $ source ~/openrc
 
-Verify it works by doing:
-
-    $ keystone user-list
-
 ## The Keystone Service Catalog
 
 Keystone stores a catalog of services as well as a user database. This allows users to query Keystone for what cloud services are available and where to find them.
@@ -171,6 +167,10 @@ Restart Keystone and verify the catalog works by doing:
 
     $ sudo restart keystone
     $ keystone catalog
+
+You should now be able to run admin-level commands such as:
+
+    $ keystone user-list
 
 ## Exercises
 
