@@ -129,7 +129,7 @@ The `openrc` file is the standard authentication file for OpenStack. While it's 
   * Run shorter commands
   * Run commands as several different OpenStack users
 
-To create the file, use any text editor to add the following contents to a file called `openrc`:
+To create the file, use any text editor to add the following contents to a file called `openrc` in your user folder:
 
     export OS_AUTH_URL=http://localhost:35357/v2.0/
     export OS_REGION_NAME=RegionOne
@@ -145,7 +145,7 @@ Next, unset the previous environment variables:
 
 and finally, source the `openrc` file:
 
-    $ source openrc
+    $ source ~/openrc
 
 Verify it works by doing:
 
