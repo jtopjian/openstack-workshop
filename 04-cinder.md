@@ -36,7 +36,11 @@ Just like with Nova, Cinder is configured using a single monolithic configuratio
 
 #### Database
 
-To configure Cinder to use MySQL for the database, add the `sql_connection` setting to the `[DEFAULT]` section of `/etc/cinder/cinder.conf`. The value of `sql_connection` is left as an exercise.
+To configure Cinder to use MySQL for the database, add the `sql_connection` setting to the `[DEFAULT]` section of `/etc/cinder/cinder.conf`.
+
+#### Exercise
+
+Connect Cinder to MySQL (set sql_connection)
 
 #### RabbitMQ
 
@@ -50,11 +54,13 @@ Add the following to the `[DEFAULT]` section of `/etc/cinder/cinder.conf`:
 
 #### Keystone
 
-Edit the bottom of `/etc/cinder/api-paste.ini` with the appropriate values.
+Configure Cinder to connect to Keystone at the bottom of `/etc/cinder/api-paste.ini` with the appropriate values.
 
 ### Database Schema
 
-Once `cinder.conf` has been modified, run the `cinder-manage` command to create the database schema.o
+Once `cinder.conf` has been modified, run the `cinder-manage` command to create the database schema.
+
+    cinder-manage db sync
 
 ## Volume Configuration
 
