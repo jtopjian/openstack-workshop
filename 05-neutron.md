@@ -28,6 +28,9 @@ The standard Neutron architecture is documented as using three dedicated servers
 
 Create a Neutron Keystone user
 
+    keystone user-create --name neutron --tenant services --pass password --email root@localhost
+    keystone user-role-add --user neutron --tenant services --role admin
+
 #### Catalog Entry
 
 We previously saw that Keystone came with a default catalog prepopulated with most services. Neutron was not one of those services, so we need to add it ourselves.
@@ -46,7 +49,7 @@ Neutron consists of several configuration files.
 #### /etc/neutron/neutron.conf
 
   * Search for `allow_overlapping_ips` and uncomment the setting.
-  * Search for the `[database]` section and set the `connection` setting to the MySQL database
+  * Search for the `[database]` section and set the `connection` setting to the MySQL database (`mysql://neutron:password@localhost/neutron`)
     * _note_: Neutron does not require a schema creation command.
   * Search and set the following RabbitMQ settings:
     * rabbit_host
@@ -147,6 +150,8 @@ We will create a single subnet that all virtual machines will run on:
 
 Neutron uses a bridge called `br-int` to host the virtual machines. This is similar to the `br0` created earlier.
 
+    $ sudo modprobe openvswitch
+    $ sudo /etc/init.d/openvswitch-switch restart
     $ sudo ovs-vsctl add-br br-int
 
 ## Instance Creation
