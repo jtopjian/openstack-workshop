@@ -100,7 +100,7 @@ Like every other Openstack command line program, run the command followed by `he
 
 Objects must be stored in containers, and we haven't made any containers yet (you can check by `swift list`). We'll create a container called `myContainer` and upload a file to it:
 
-    export $userID=XXXX
+    export userID=XXXX
 
     swift post myContainer$userID
     echo 'Hello World' > helloWorld.txt;
@@ -326,11 +326,11 @@ You can check that `rsync` is working by running `rsync rsync://pub@localhost/`.
 
 ### Swift Proxy
 
-We then have to configure the proxy node. The proxy service is what everything talks to get/put anything into the object-store. First we have to fix memcache by editing `/etc/memcache.conf` changing:
+We then have to configure the proxy node. The proxy service is what everything talks to get/put anything into the object-store. First we have to fix memcache by editing `/etc/memcache.conf` changing: (use your local IP eg. 10.0.0.148)
 
     -l 127.0.0.1
     to
-    -l 0.0.0.0
+    -l LOCAL_IP
 
 Then restart memcache: `sudo service memcached restart`
 
