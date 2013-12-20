@@ -53,15 +53,12 @@ And restart Keystone
 
     service keystone restart
 
-Next create the self signed cert for Swift (though we don't use it)
-    cd /etc/swift
-    openssl req -new -x509 -nodes -out cert.crt -keyout cert.key
-
 Next step is to get memcache to run on the local IP and not localhost: edit `/etc/memcached.conf` and change `-l 127.0.0.0.1` to `-l LOCAL_IP`. For example `-l 10.0.0.48` and restart memcache.
 
     service memcached restart
 
 A couple housekeeping steps to create folders:
+
     mkdir -p /var/cache/swift
     mkdir -p /var/swift/keystone-signing
     chown -R swift:swift /var/swift/keystone-signing
@@ -158,7 +155,7 @@ Back on the `proxy-server` (controller node), we will start making the rings. We
     swift-ring-builder container.builder create 9 3 1
     swift-ring-builder object.builder create 9 3 1
 
-Create our ring: Since we have 5 nodes:
+Create our ring: Since we have 5 nodes: (*be sure to set the IPs correctly!*)
 
     swift-ring-builder account.builder add z1-10.0.0.151:6012/vdb1 100
     swift-ring-builder container.builder add z1-10.0.0.151:6011/vdb1 100
@@ -388,9 +385,11 @@ A couple of our previous day to day tests:
     005 => 10.0.0.154
 
 On two nodes run:
+
     watch -n 1 ls /srv/nodes/objects/
 
 On the controller run:
+
     for x in {1..30}; do echo "$x" > $x.txt; swift upload myContainer$userID $x.txt; done
 
     swift-get-nodes /etc/swift/object.ring.gz admin myContainer$userID helloWorld.txt

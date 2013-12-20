@@ -124,6 +124,8 @@ We can also add arbitrary metadata to an object, say for use by your application
   - `X-Container-Meta` for containers
   - `X-Object-Meta` for objects
 
+Then run:
+
     swift post -m "X-Object-Meta-Hello: World" myContainer$userID helloWorld.txt
     swift stat myContainer$userID helloWorld.txt
 
@@ -136,9 +138,13 @@ Some other metadata features available that aren't shown that you can look up:
 
 ### Access Control Lists and Web Access
 
-Swift provides access control lists for *containers* and are posted just the same as metadata. You can set a container to readable by the world by running:
+Swift provides access control lists for *containers* and are posted just the same as metadata. You can set a container to readable by the world:
 
     swift post -r '.r:*' myContainer$userID
+
+The `-r` flag states you're setting the Read ACL. While the `'.r:*'` states you want anyone to read. You can change it to a list of usernames (separated by commas) instead if you only want other users to view it. And then take a look at the Read ACL attribute:
+
+    swift stat myContainer$userID
 
 One thing to note with ACLs - you're overwriting that metadata "tag" and not appending to anything existing.
 
@@ -155,6 +161,7 @@ A couple of other tricks with the same feature are to:
     cat <<EOF > listings.css
     From Toni @dev.hackers.fi (http://redmine.lighttpd.net/boards/3/topics/5418)
     @import url(http://fonts.googleapis.com/css?family=Raleway:200,400,600);
+
     body, html { background: #222; margin:0; }
     html { font: 14px/1.4 Raleway, 'Helvetica Neue', Helvetica, sans-serif; color: #ddd; font-weight: 400; }
 
@@ -206,12 +213,14 @@ Obtain admin's tenant ID by running:
 
     keystone tenant-list
 
-Then add the following to`/etc/keystone/default_catalog.templates`, change $TENANT\_ID to the tenant ID (eg. `AUTH_d196fd3acba649739e5dfbe5ebce108f`)
+Then add the following to`/etc/keystone/default_catalog.templates`:
 
     catalog.RegionOne.object_store.name = Swift Service
-    catalog.RegionOne.object_store.publicURL = http://localhost:8080/v1/AUTH_$TENANT_ID
+    catalog.RegionOne.object_store.publicURL = http://localhost:8080/v1/AUTH_$(tenant_id)s
     catalog.RegionOne.object_store.adminURL = http://localhost:8080/
-    catalog.RegionOne.object_store.internalURL = http://localhost:8080/v1/AUTH_$TENANT_ID
+    catalog.RegionOne.object_store.internalURL = http://localhost:8080/v1/AUTH_$(tenant_id)s
+
+Then be sure to restart Keystone (`service keystone restart`)
 
 ### Storage
 
@@ -610,10 +619,9 @@ And then some regex fun to replicate the above for storage nodes 2, 3 and 4.
     rm /etc/swift/container-server.conf
     rm /etc/swift/object-server.conf
 
-Next we need an SSL cert for Swift. Be sure to use the **IP** for the **common name**.
+Lastly some house keeping and missing folders:
 
     cd /etc/swift
-    openssl req -new -x509 -nodes -out cert.crt -keyout cert.key
     mkdir -p /var/swift/keystone-signing
     chown -R swift:swift /var/swift/keystone-signing
 
@@ -625,18 +633,20 @@ Next we'll be creating our rings. Our partition power is set to 6 because we're 
 
 Be sure to change the IP below to your IP!!! (run `ip a` and locate your 10.0.0.x address)
 
-    swift-ring-builder account.builder add z1-10.10.0.202:6012/sdb1 100
-    swift-ring-builder container.builder add z1-10.10.0.202:6011/sdb1 100
-    swift-ring-builder object.builder add z1-10.10.0.202:6010/sdb1 100
-    swift-ring-builder account.builder add z1-10.10.0.202:6022/sdb2 100
-    swift-ring-builder container.builder add z1-10.10.0.202:6021/sdb2 100
-    swift-ring-builder object.builder add z1-10.10.0.202:6020/sdb2 100
-    swift-ring-builder account.builder add z1-10.10.0.202:6032/sdb3 100
-    swift-ring-builder container.builder add z1-10.10.0.202:6031/sdb3 100
-    swift-ring-builder object.builder add z1-10.10.0.202:6030/sdb3 100
-    swift-ring-builder account.builder add z1-10.10.0.202:6042/sdb4 100
-    swift-ring-builder container.builder add z1-10.10.0.202:6041/sdb4 100
-    swift-ring-builder object.builder add z1-10.10.0.202:6040/sdb4 100
+    export MY_LOCAL_IP=10.0.0.0
+
+    swift-ring-builder account.builder add z1-$MY_LOCAL_IP:6012/sdb1 100
+    swift-ring-builder container.builder add z1-$MY_LOCAL_IP:6011/sdb1 100
+    swift-ring-builder object.builder add z1-$MY_LOCAL_IP:6010/sdb1 100
+    swift-ring-builder account.builder add z1-$MY_LOCAL_IP:6022/sdb2 100
+    swift-ring-builder container.builder add z1-$MY_LOCAL_IP:6021/sdb2 100
+    swift-ring-builder object.builder add z1-$MY_LOCAL_IP:6020/sdb2 100
+    swift-ring-builder account.builder add z1-$MY_LOCAL_IP:6032/sdb3 100
+    swift-ring-builder container.builder add z1-$MY_LOCAL_IP:6031/sdb3 100
+    swift-ring-builder object.builder add z1-$MY_LOCAL_IP:6030/sdb3 100
+    swift-ring-builder account.builder add z1-$MY_LOCAL_IP:6042/sdb4 100
+    swift-ring-builder container.builder add z1-$MY_LOCAL_IP:6041/sdb4 100
+    swift-ring-builder object.builder add z1-$MY_LOCAL_IP:6040/sdb4 100
 
 Verify and rebalance:
 
