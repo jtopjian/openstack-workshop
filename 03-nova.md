@@ -19,7 +19,7 @@ For this exercise, all daemons will be run on a single server. This is known as 
 
 ## Installation
 
-    $ sudo apt-get install nova-novncproxy novnc nova-api nova-ajax-console-proxy nova-cert nova-conductor nova-consoleauth nova-doc nova-scheduler nova-network nova-compute-qemu python-novaclient
+    $ sudo apt-get install nova-novncproxy novnc nova-api nova-ajax-console-proxy nova-cert nova-conductor nova-consoleauth nova-doc nova-scheduler python-novaclient
 
 ## Configuration
 
@@ -59,21 +59,30 @@ To configure Nova to use Glance for the image service, add the following to the 
     image_service=nova.image.glance.GlanceImageService
     glance_api_servers=localhost:9292
 
+#### Neutron
+
+To configure Nova to use Neutron for the network service, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
+
+    network_api_class = nova.network.neutronv2.api.API
+    neutron_url = http://<ip of eth0>:9696
+    neutron_auth_strategy = keystone
+    neutron_admin_tenant_name = services
+    neutron_admin_username = neutron
+    neutron_admin_password = password
+    neutron_admin_auth_url = http://<ip of eth0>:35357/v2.0
+    firewall_driver = nova.virt.firewall.NoopFirewallDriver
+    security_group_api = neutron
+    service_neutron_metadata_proxy = True
+    neutron_metadata_proxy_shared_secret = password
+    libvirt_vif_type = ethernet
+    libvirt_vif_driver = nova.virt.libvirt.vif.NeutronLinuxBridgeVIFDriver
+    linuxnet_interface_driver = nova.network.linux_net.NeutronLinuxBridgeInterfaceDriver
+
 #### Keystone
 
 To configure Nova to use Keystone, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
 
     auth_strategy = keystone
-
-And add the following to the bottom of `/etc/nova/nova.conf`:
-
-    [keystone_authtoken]
-    auth_host = localhost
-    auth_port = 35357
-    auth_protocol = http
-    admin_tenant_name = services
-    admin_user = nova
-    admin_password = password
 
 Finally, open `/etc/nova/api-paste.ini` and go down to the bottom. Modify the Keystone authentication information as needed:
 
@@ -110,106 +119,5 @@ To confirm that Nova can talk to Glance, run the following:
     $ nova image-list
 
 You should see your CirrOS image.
-
-## Nova Networking
-
-Neutron is the new networking component for OpenStack. Originally, the networking component was handled by `nova-network`. We will get into Neutron later. For now, we'll create a simple network with `nova-network`.
-
-### Server Configuration
-
-To begin, you will need to create a bridge interface. We can do this directly by using `tee`:
-
-    cat <<EOF | sudo tee /etc/network/interfaces
-    auto lo
-    iface lo inet loopback
-
-    auto eth0
-    iface eth0 inet manual
-
-    auto br0
-    iface br0 inet dhcp
-        bridge_ports eth0
-        bridge_stp off
-        bridge_fd 0
-        bridge_maxwait 0
-    EOF
-
-Once complete, restart networking:
-
-    $ sudo /etc/init.d/networking restart
-
-If everything completed successfully, you will still have connectivity to your server and you will have a new interface called `br0`:
-
-    $ ip a | grep br0
-
-Additionally, you will have a bridge named `br0`:
-
-    $ brctl show
-
-### Nova Configuration
-
-Add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
-
-    network_manager=nova.network.manager.FlatDHCPManager
-    firewall_driver=nova.virt.libvirt.firewall.IptablesFirewallDriver
-    network_size=254
-    force_dhcp_release=True
-    flat_network_bridge=br0
-    flat_interface=eth0
-    public_interface=eth0
-
-### Network Creation
-
-The final step is to create a virtual network that your virtual machines will communicate on:
-
-    $ source ~/openrc
-    $ sudo nova-manage network create nova --fixed_range_v4=192.168.1.0/24 --bridge_interface=eth0 --bridge=br0
-
-Then restart `nova-network`:
-
-    $ sudo restart nova-network
-
-
-    $ for i in /etc/init.d/nova-*
-    > do
-    > sudo $i restart
-    > done
-
-
-## Launching an Instance
-
-At this point, we have Keystone providing authentication, Glance providing images, and Nova providing virtual machine orchestration. This is the minimum needed to start launching virtual machines in an IaaS environment. Let's try!
-
-    $ nova image-list
-    $ nova boot --image <uuid> --flavor 1 my_vm
-
-You can check the status of your vm a few different ways:
-
-    $ nova show my_vm
-    $ sudo tail -f /var/log/nova/nova-compute.log
-
-If your instance fails to launch, the latter command will give you more insight as to why.
-
-Once your instance shows a status of `ACTIVE`, you can see the console output by doing:
-
-    $ nova console-log my_vm
-
-If all is successful, you can ping and SSH to your instance:
-
-    $ ping -c 1 192.168.1.13
-    $ ssh cirros@192.168.1.3
-
-## Security Groups
-
-Note that you were able to ping and SSH to your instance even though you did not set up a security group. The CirrOS image bypasses security groups. Besides the CirrOS image having a standard default password, the lack of security group feature is another reason why it should not be used in production.
-
-### Exercises
-
-To create add rules to your default security group on the command line, do the following:
-
-    $ nova help | grep secgroup
-    $ nova help secgroup-list
-    $ nova help secgroup-list-rules
-    $ nova help secgroup-add-rule
 
 ## Questions?

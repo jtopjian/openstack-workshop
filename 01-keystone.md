@@ -30,14 +30,14 @@ They Keystone Admin Token is similar to the root password on a Linux server. To 
   * Search for `admin_token` (third line).
   * Uncomment it.
   * Set the value to a password of your choice:
-    * `admin_token = password`
+    * `admin_token = 12345`
 
 ### Token Format
 
 Keystone supports two types of tokens: UUID and PKI. UUID-based tokens are simple, short token strings. PKI tokens are full SSL-compatible tokens. While the PKI-based tokens give you the ability to tie into an existing PKI infrastructure, the UUID tokens are more simple and appropriate for basic environments.
 
-  * In `/etc/keystone/keystone.conf`, search for `token_format`.
-  * Change the value to `UUID`.
+  * In `/etc/keystone/keystone.conf`, search for the `[token]` section.
+  * Change the value to `keystone.token.providers.uuid.Provider`.
 
 ### Database
 
@@ -53,7 +53,7 @@ Now the Keystone database schema needs to be created:
 
 You can verify that the schema was created by doing the following:
 
-    $ mysql -u root -p keystone
+    $ mysql
     mysql> show tables;
 
 With the database and admin token, and token format configured, restart Keystone:
@@ -112,11 +112,9 @@ To create the admin role, do the following:
 
     $ keystone role-create --name admin
 
-You can see that a `_member_` role already exists:
+To create the member role, do the following:
 
-    $ keystone role-list
-
-`_member_` has a special format to denote that it's an internal role.
+    $ keystone role-create --name member
 
 Finally, grant the `admin` user the `admin` role in the `admin` tenant:
 
@@ -171,6 +169,8 @@ Restart Keystone and verify the catalog works by doing:
 You should now be able to run admin-level commands such as:
 
     $ keystone user-list
+
+Once that has confirmed to work, edit the `/etc/keystone/default_catalog.templates` file and change `localhost` to the IP address of the cloud controller.
 
 ## Exercises
 

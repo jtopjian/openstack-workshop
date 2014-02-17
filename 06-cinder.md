@@ -123,11 +123,18 @@ To attach a volume to your running CirrOS server, do:
 
 Note that Nova reported it will attach as `/dev/vdb`.
 
-Now log in to your CirrOS image and do:
+You can verify that the device was attached by doing:
+
+    $ nova console-log my_vm
+
+
+### Working with Volumes
+
+Log in to your CirrOS image and do:
 
     $ sudo dmesg
 
-You will see a message about `/dev/vdb`. OpenStack and KVM do not work well together with regard to correctly reporting the device name of attached volumes.
+You will see a message about `/dev/vdb`. OpenStack and KVM do not work well together with regard to reporting the device name of attached volumes.
 
 You can verify that `/dev/vdb` is the right volume by doing:
 

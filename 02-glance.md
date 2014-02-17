@@ -76,15 +76,15 @@ Now that Glance is running, add an image to it. For this workshop, an image know
 To add it to Glance, first download it:
 
     $ cd
-    $ wget http://cdn.download.cirros-cloud.net/0.3.1/cirros-0.3.1-x86_64-disk.img
+    $ wget http://download.cirros-cloud.net/0.3.2~pre2/cirros-0.3.2~pre2-x86_64-disk.img
 
 Next, note the _file type_ of the image:
 
-    $ file cirros-0.3.1*
+    $ file cirros-0.3.2*
 
 Notice how it's a QCOW v2 file. This will be important when adding the image to Glance:
 
-    $ glance image-create --name CirrOS --disk-format qcow2 --container-format bare --is-public true < cirros-0.3.1*
+    $ glance image-create --name CirrOS --disk-format qcow2 --container-format bare --is-public true < cirros-0.3.2*
 
 If the command was successful, details about the image will be returned. You can verify that the image was uploaded to the default `file` backend by doing:
 
