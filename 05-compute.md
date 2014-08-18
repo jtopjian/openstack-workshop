@@ -21,28 +21,46 @@ Install `apt` tools and the Havana `apt` repo:
 
 In `/etc/nova/nova.conf`, add the following settings to the `[DEFAULT]` section:
 
-    sql_connection mysql://nova:password@cc-ip/nova
-    rpc_backend=nova.rpc.impl_kombu
-    rabbit_host=cc-ip
-    rabbit_user=guest
-    rabbit_password=guest
+    auth_strategy = keystone
+
+    rpc_backend = nova.rpc.impl_kombu
+    rabbit_host = cc-ip
+    rabbit_port = 5672
+    rabbit_user = guest
+    rabbit_password = guest
+
     image_service=nova.image.glance.GlanceImageService
     glance_api_servers=cc-ip:9292
-    auth_strategy=keystone
-    network_api_class=nova.network.neutronv2.api.API
-    neutron_url=http://cc-ip:9696
-    neutron_auth_strategy=keystone
-    neutron_admin_tenant_name=services
-    neutron_admin_username=neutron
-    neutron_admin_password=password
-    neutron_admin_auth_url=http://cc-ip:35357/v2.0
-    firewall_driver=nova.virt.firewall.NoopFirewallDriver
-    security_group_api=neutron
-    service_neutron_metadata_proxy=True
-    neutron_metadata_proxy_shared_secret=password
-    libvirt_vif_type=ethernet
-    libvirt_vif_driver=nova.virt.libvirt.vif.NeutronLinuxBridgeVIFDriver
-    linuxnet_interface_driver=nova.network.linux_net.NeutronLinuxBridgeInterfaceDriver
+
+    network_api_class = nova.network.neutronv2.api.API
+    neutron_url = http://cc-ip:9696
+    neutron_auth_strategy = keystone
+    neutron_admin_tenant_name = services
+    neutron_admin_username = neutron
+    neutron_admin_password = password
+    neutron_admin_auth_url = http://cc-ip:35357/v2.0
+    firewall_driver = nova.virt.firewall.NoopFirewallDriver
+    security_group_api = neutron
+    service_neutron_metadata_proxy = True
+    neutron_metadata_proxy_shared_secret = password
+    linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
+
+    vnc_enabled=true
+    vncserver_listen=0.0.0.0
+    vncserver_proxyclient_address=compute-ip
+    novncproxy_base_url=http://cc-ip:6080/vnc_auto.html
+
+    [database]
+    sql_connection = mysql://nova:password@cc-ip/nova
+
+    [keystone_authtoken]
+    auth_uri = http://cc-ip:5000
+    auth_host = cc-ip
+    auth_port = 35357
+    auth_protocol = http
+    admin_tenant_name = services
+    admin_user = nova
+    admin_password = password
 
 ### Restart
 
@@ -61,26 +79,57 @@ Once all of the above has been entered in to `nova.conf`, restart the `nova-comp
 Edit `/etc/neutron/neutron.conf`:
 
     [DEFAULT]
+    verbose = True
+    debug = True
     core_plugin = neutron.plugins.ml2.plugin.Ml2Plugin
-    rabbit_host = <cc ip>
-    rabbit_port = 5672
-    rabbit_userid = guest
-    rabbit_password = guest
+    service_plugins = router
+    allow_overlapping_ips = True
+    rabbit_host = cc-ip
+    notification_driver = neutron.openstack.common.notifier.rpc_notifier
+    nova_url = http://cc-ip:8774/v2
+    nova_region_name = RegionOne
+    nova_admin_username = nova
+    nova_admin_tenant_id = <admin tenant id>
+    nova_admin_password = password
+    nova_admin_auth_url = http://cc-ip:35357/v2.0
+
+    [keystone_authtoken]
+    auth_host = cc-ip
+    auth_port = 35357
+    auth_protocol = http
+    admin_tenant_name = services
+    admin_user = neutron
+    admin_password = password
+
+    [database]
+    connection = mysql://neutron:password@cc-ip/neutron
+
+    [service_providers]
+    service_provider=LOADBALANCER:Haproxy:neutron.services.loadbalancer.drivers.haproxy.plugin_driver.HaproxyOnHostPluginDriver:default
+    service_provider=VPN:openswan:neutron.services.vpn.service_drivers.ipsec.IPsecVPNDriver:default
 
 Edit `/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini`:
 
-    [vxlan]
-    enable_vxlan = true
-    local_ip = <c01 ip>
+    [ml2]
+    type_drivers = vlan
+    tenant_network_types = vlan
+    mechanism_drivers = openvswitch
+
+    [ml2_type_vlan]
+    network_vlan_ranges = trunk:XX:XX,trunk:XX:XX
 
     [securitygroup]
-    firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
+    firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+    enable_security_group = True
+
+    [ovs]
+    bridge_mappings = trunk:eth-XXX
 
 ### Restart
 
 Restart the Neutron agent:
 
-    $ sudo /etc/init.d/neutron-plugin-linuxbridge-agent restart
+    $ sudo neutron-plugin-openvswitch-agent.conf restart
 
 ## Launching an Instance!
 

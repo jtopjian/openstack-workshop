@@ -42,43 +42,47 @@ Edit `/etc/keystone/default_catalog.templates` and add the following:
 
 Neutron consists of several configuration files.
 
-#### /etc/default/neutron-server
-
-    NEUTRON_PLUGIN_CONFIG="/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini"
-
 #### /etc/neutron/neutron.conf
 
 Search for and set the following:
 
     [DEFAULT]
+    verbose = True
     core_plugin = neutron.plugins.ml2.plugin.Ml2Plugin
+    service_plugins = neutron.services.l3_router.l3_router_plugin.L3RouterPlugin
     allow_overlapping_ips = True
-    rabbit_host = <cc ip>
-    rabbit_port = 5672
-    rabbit_userid = guest
-    rabbit_password = guest
+    notification_driver = neutron.openstack.common.notifier.rpc_notifier
+    nova_url = http://localhost:8774/v2
+    nova_region_name = RegionOne
+    nova_admin_username = nova
+    nova_admin_tenant_id = <admin tenant id>
+    nova_admin_password = password
+    nova_admin_auth_url = http://localhost:35357/v2.0
 
     [database]
     connection = mysql://neutron:password@localhost/neutron
 
     [keystone_authtoken]
-    fill in the usual values
+    auth_host = 127.0.0.1
+    auth_port = 35357
+    auth_protocol = http
+    admin_tenant_name = services
+    admin_user = neutron
+    admin_password = password
 
 #### /etc/neutron/dhcp_agent.ini
 
 Search for and set the following:
 
-    interface_driver = neutron.agent.linux.interface.BridgeInterfaceDriver
+    interface_driver = neutron.agent.linux.interface.OVSInterfaceDriver
     dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
     use_namespaces = True
-    enable_isolated_metadata = True
-    enable_metadata_network = True
 
 #### /etc/neutron/metadata_agent.ini
 
 Search for and set the following:
 
-    auth_url = http://<cc ip>:5000/v2.0
+    auth_url = http://localhost:5000/v2.0
     auth_region = RegionOne
     admin_tenant_name = services
     admin_user = neutron
@@ -90,32 +94,30 @@ Search for and set the following:
 Add the following sections:
 
     [ml2]
-    type_drivers = vxlan
-    mechanism_drivers = linuxbridge
-    tenant_network_types = vxlan
+    type_drivers = vlan
+    tenant_network_types = vlan
+    mechanism_drivers = openvswitch
 
-    [ml2_type_vxlan]
-    vni_ranges = 1:1000
-
-Search for and change the following:
-
-    [vxlan]
-    enable_vxlan = true
-    local_ip = <cc ip>
+    [ml2_type_vlan]
+    network_vlan_ranges = trunk:XX:XX,trunk:XXX:XXX
 
     [securitygroup]
-    firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
+    firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+    enable_security_group = True
+
+    [ovs]
+    bridge_mappings = trunk:eth-XXX
 
 ### Restart Services
 
 Restart all Keystone, Nova, and Neutron services:
 
     $ sudo restart keystone
-
-    $ for i in /etc/init.d/neutron-*
-    > do
-    > sudo $i restart
-    > done
+    $ sudo restart neutron-server
+    $ sudo restart neutron-l3-agent
+    $ sudo restart neutron-dhcp-agent
+    $ sudo restart neutron-metadata-agent
+    $ sudo restart neutron-plugin-openvswitch-agent
 
 ### Verfication
 

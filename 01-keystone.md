@@ -155,8 +155,8 @@ To create the text-based catalog file:
 
   * Open `/etc/keystone/keystone.conf`.
   * Search for `catalog`.
-  * Comment out the first `driver` entry.
-  * Uncomment the second `driver` entry a few lines below the first (it says TemplatedCatalog)
+  * Set `driver` to `keystone.catalog.backends.templated.Catalog`.
+  * Set `template_file` to `/etc/keystone/default_catalog.templates`
   * Save and exit the file.
 
 You'll notice that `/etc/keystone/default_catalog.templates` already exists and includes the basic OpenStack services.

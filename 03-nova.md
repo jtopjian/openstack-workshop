@@ -38,7 +38,7 @@ _note_: The exception to this is with the Ubuntu packages which install a second
 
 #### Database
 
-To configure Nova to use MySQL for the database, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
+To configure Nova to use MySQL for the database, add a new section called `[database]` in `/etc/nova/nova.conf`:
 
     sql_connection = mysql://nova:password@localhost/nova
 
@@ -64,19 +64,17 @@ To configure Nova to use Glance for the image service, add the following to the 
 To configure Nova to use Neutron for the network service, add the following to the `[DEFAULT]` section of `/etc/nova/nova.conf`:
 
     network_api_class = nova.network.neutronv2.api.API
-    neutron_url = http://<ip of eth0>:9696
+    neutron_url = http://localhost:9696
     neutron_auth_strategy = keystone
     neutron_admin_tenant_name = services
     neutron_admin_username = neutron
     neutron_admin_password = password
-    neutron_admin_auth_url = http://<ip of eth0>:35357/v2.0
+    neutron_admin_auth_url = http://localhost:35357/v2.0
     firewall_driver = nova.virt.firewall.NoopFirewallDriver
     security_group_api = neutron
     service_neutron_metadata_proxy = True
     neutron_metadata_proxy_shared_secret = password
-    libvirt_vif_type = ethernet
-    libvirt_vif_driver = nova.virt.libvirt.vif.NeutronLinuxBridgeVIFDriver
-    linuxnet_interface_driver = nova.network.linux_net.NeutronLinuxBridgeInterfaceDriver
+    linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
 
 #### Keystone
 
@@ -84,11 +82,10 @@ To configure Nova to use Keystone, add the following to the `[DEFAULT]` section 
 
     auth_strategy = keystone
 
-Finally, open `/etc/nova/api-paste.ini` and go down to the bottom. Modify the Keystone authentication information as needed:
+Then add a new section called `[keystone_authtoken]` in `/etc/nova/nova.conf` and add the following under it:
 
-    [filter:authtoken]
-    paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory
-    auth_host = 127.0.0.1
+    auth_uri = http://localhost:5000
+    auth_host = localhost
     auth_port = 35357
     auth_protocol = http
     admin_tenant_name = services
