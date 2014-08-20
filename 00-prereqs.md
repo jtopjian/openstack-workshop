@@ -16,7 +16,7 @@ Note the hosts and IP addresses you will be working with:
 Install `apt` tools and the Havana `apt` repo:
 
     $ sudo apt-get install python-software-properties
-    $ sudo add-apt-repository cloud-archive:havana
+    $ sudo add-apt-repository cloud-archive:icehouse
     $ sudo apt-get update
 
 Install MySQL:
