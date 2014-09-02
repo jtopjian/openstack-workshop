@@ -6,7 +6,8 @@ We will use the following Neutron components:
 
   * neutron-server: accepts HTTP/REST api calls.
   * neutron-dhcp-agent: handles DHCP for the instances.
-  * neutron-plugin-linuxbridge: uses the standard Linux Bridge as the network backend.
+  * neutron-plugin-openvswitch-agent: uses Open vSwitch as the network backend.
+  * neutron-plugin-ml2: The Neutron ML2 Plugin
   * neutron-metadata-agent: handles metadata proxying to the Nova metadata service
   * neutron-l3-agent: handles L3 routing such as virtual routers
 
@@ -14,9 +15,16 @@ The standard Neutron architecture is documented as using three dedicated servers
 
 ## Installation
 
-    $ sudo apt-get install neutron-server neutron-dhcp-agent neutron-plugin-linuxbridge neutron-metadata-agent neutron-l3-agent neutron-plugin-linuxbridge-agent
+    $ sudo apt-get install neutron-plugin-ml2 neutron-plugin-openvswitch-agent openvswitch-datapath-dkms neutron-l3-agent neutron-dhcp-agent
 
 ## Configuration
+
+### Open vSwitch
+
+Create a bridge for the NIC that acts as a trunk to all VLANs:
+
+    $ ovs-vsctl add-br br-eth1
+    $ ovs-vsctl add-port br-eth1 eth1
 
 ### Keystone
 
@@ -89,7 +97,7 @@ Search for and set the following:
     admin_password = password
     metadata_proxy_shared_secret = password
 
-#### /etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini
+#### /etc/neutron/plugins/ml2/ml2_conf.ini
 
 Add the following sections:
 
@@ -99,14 +107,14 @@ Add the following sections:
     mechanism_drivers = openvswitch
 
     [ml2_type_vlan]
-    network_vlan_ranges = trunk:XX:XX,trunk:XXX:XXX
+    network_vlan_ranges = trunk:3811:3819
 
     [securitygroup]
     firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
     enable_security_group = True
 
     [ovs]
-    bridge_mappings = trunk:eth-XXX
+    bridge_mappings = trunk:br-eth1
 
 ### Restart Services
 
@@ -131,8 +139,8 @@ Now that Neutron is installed and configured with both Keystone and Nova, it's t
 
 We will create a single subnet that all virtual machines will run on:
 
-    $ neutron net-create --shared default
-    $ neutron subnet-create default 192.168.1.0/24 --name default --no-gateway --allocation-pool start=192.168.1.100,end=192.168.1.200
+    $ neutron net-create vlan-3811 --provider:physical_network=trunk --provider:network_type=vlan --provider:segmentation_id=3811 --shared
+    $ neutron subnet-create vlan-3811 --name vlan-3811 --allocation-pool start=10.100.0.10,end=10.100.0.100 --dns-nameserver 8.8.8.8 10.100.0.0/24
 
 If everything worked correctly, you should see your network listed when you do:
 
