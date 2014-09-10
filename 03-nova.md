@@ -40,7 +40,7 @@ _note_: The exception to this is with the Ubuntu packages which install a second
 
 To configure Nova to use MySQL for the database, add a new section called `[database]` in `/etc/nova/nova.conf`:
 
-    sql_connection = mysql://nova:password@localhost/nova
+    connection = mysql://nova:password@localhost/nova
 
 #### RabbitMQ
 
