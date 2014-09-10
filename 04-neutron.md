@@ -15,7 +15,7 @@ The standard Neutron architecture is documented as using three dedicated servers
 
 ## Installation
 
-    $ sudo apt-get install neutron-plugin-ml2 neutron-plugin-openvswitch-agent openvswitch-datapath-dkms neutron-l3-agent neutron-dhcp-agent
+    $ sudo apt-get install neutron-server neutron-plugin-ml2 neutron-plugin-openvswitch-agent openvswitch-datapath-dkms neutron-l3-agent neutron-dhcp-agent
 
 ## Configuration
 

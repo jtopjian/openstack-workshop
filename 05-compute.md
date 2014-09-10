@@ -72,7 +72,15 @@ Once all of the above has been entered in to `nova.conf`, restart the `nova-comp
 
 ### Installation
 
-    $ sudo apt-get install -y neutron-plugin-linuxbridge-agent
+    $ sudo apt-get install -y neutron-plugin-openvswitch-agent
+
+### Open vSwitch
+
+Create a bridge for the NIC that acts as a trunk to all VLANs:
+
+    $ ovs-vsctl add-br br-eth1
+    $ ovs-vsctl add-port br-eth1 eth1
+
 
 ### Configuration
 
@@ -108,7 +116,7 @@ Edit `/etc/neutron/neutron.conf`:
     service_provider=LOADBALANCER:Haproxy:neutron.services.loadbalancer.drivers.haproxy.plugin_driver.HaproxyOnHostPluginDriver:default
     service_provider=VPN:openswan:neutron.services.vpn.service_drivers.ipsec.IPsecVPNDriver:default
 
-Edit `/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini`:
+Edit `/etc/neutron/plugins/ml2/ml2_conf.ini`:
 
     [ml2]
     type_drivers = vlan
@@ -116,14 +124,14 @@ Edit `/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini`:
     mechanism_drivers = openvswitch
 
     [ml2_type_vlan]
-    network_vlan_ranges = trunk:XX:XX,trunk:XX:XX
+    network_vlan_ranges = trunk:3811:3819
 
     [securitygroup]
     firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
     enable_security_group = True
 
     [ovs]
-    bridge_mappings = trunk:eth-XXX
+    bridge_mappings = trunk:br-eth1
 
 ### Restart
 
