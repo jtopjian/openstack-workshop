@@ -137,7 +137,7 @@ Edit `/etc/neutron/plugins/ml2/ml2_conf.ini`:
 
 Restart the Neutron agent:
 
-    $ sudo neutron-plugin-openvswitch-agent.conf restart
+    $ sudo restart neutron-plugin-openvswitch-agent
 
 ## Launching an Instance!
 
