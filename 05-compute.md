@@ -88,19 +88,20 @@ Edit `/etc/neutron/neutron.conf`:
 
     [DEFAULT]
     verbose = True
-    debug = True
+    state_path = /var/lib/neutron
+    lock_path = $state_path/lock
     core_plugin = neutron.plugins.ml2.plugin.Ml2Plugin
-    service_plugins = router
+    service_plugins = neutron.services.l3_router.l3_router_plugin.L3RouterPlugin
     allow_overlapping_ips = True
     rabbit_host = cc-ip
     notification_driver = neutron.openstack.common.notifier.rpc_notifier
-    nova_url = http://cc-ip:8774/v2
     nova_region_name = RegionOne
     nova_admin_username = nova
-    nova_admin_tenant_id = <admin tenant id>
+    nova_admin_tenant_id = <tenant_id>
     nova_admin_password = password
-    nova_admin_auth_url = http://cc-ip:35357/v2.0
-
+    [quotas]
+    [agent]
+    root_helper = sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf
     [keystone_authtoken]
     auth_host = cc-ip
     auth_port = 35357
@@ -108,10 +109,9 @@ Edit `/etc/neutron/neutron.conf`:
     admin_tenant_name = services
     admin_user = neutron
     admin_password = password
-
+    signing_dir = $state_path/keystone-signing
     [database]
     connection = mysql://neutron:password@cc-ip/neutron
-
     [service_providers]
     service_provider=LOADBALANCER:Haproxy:neutron.services.loadbalancer.drivers.haproxy.plugin_driver.HaproxyOnHostPluginDriver:default
     service_provider=VPN:openswan:neutron.services.vpn.service_drivers.ipsec.IPsecVPNDriver:default
